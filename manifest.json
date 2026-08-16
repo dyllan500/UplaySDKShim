@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "project": "UbisoftSDKShim",
+  "configFile": "hook.config",
+  "logFile": "hook.log",
+  "games": {
+    "farcry3": {
+      "name": "Far Cry 3",
+      "architecture": "x86",
+      "buildTarget": "farcry3_shim",
+      "artifact": "farcry3_shim/binkw32.dll",
+      "proxy": "binkw32.dll",
+      "original": "binkw32_real.dll",
+      "profile": "fc3-pc-2018",
+      "modules": ["FC3_d3d11.dll", "FC3.dll"],
+      "tlsVerifierRva": null
+    },
+    "farcry4": {
+      "name": "Far Cry 4",
+      "architecture": "x64",
+      "buildTarget": "farcry4_shim",
+      "artifact": "farcry4_shim/bink2w64.dll",
+      "proxy": "bink2w64.dll",
+      "original": "bink2w64_real.dll",
+      "profile": "fc4-fc64-rva-024134f0",
+      "modules": ["FC64.dll"],
+      "tlsVerifierRva": "0x024134f0"
+    },
+    "farcry5": {
+      "name": "Far Cry 5",
+      "architecture": "x64",
+      "buildTarget": "farcry5_shim",
+      "artifact": "farcry5_shim/bink2w64.dll",
+      "proxy": "bink2w64.dll",
+      "original": "bink2w64_real.dll",
+      "profile": "fc5-fc_m64-rva-03e01eb0",
+      "modules": ["FC_m64.dll"],
+      "tlsVerifierRva": "0x03e01eb0"
+    },
+    "farcrynewdawn": {
+      "name": "Far Cry New Dawn",
+      "architecture": "x64",
+      "buildTarget": "farcrynewdawn_shim",
+      "artifact": "farcrynewdawn_shim/bink2w64.dll",
+      "proxy": "bink2w64.dll",
+      "original": "bink2w64_real.dll",
+      "profile": "fcnd-fc_m64-67ef9b27",
+      "modules": ["FC_m64.dll"],
+      "tlsVerifierRva": "0x03e07d00"
+    }
+  }
+}

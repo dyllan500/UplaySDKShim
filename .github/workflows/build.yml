@@ -1,0 +1,68 @@
+name: Build shims
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build all shims
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install MinGW and CMake
+        run: |
+          timeout 5m sudo apt-get update -o Acquire::Retries=2 -o Acquire::http::Timeout=20 -o Acquire::https::Timeout=20
+          timeout 10m sudo env DEBIAN_FRONTEND=noninteractive apt-get install --yes --no-install-recommends cmake binutils-mingw-w64 g++-mingw-w64-x86-64 g++-mingw-w64-i686
+      - name: Configure and build x64 shims
+        run: |
+          cmake -S . -B build/x64 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-g++
+          cmake --build build/x64 --target farcry4_shim farcry5_shim farcrynewdawn_shim --parallel
+      - name: Configure and build x86 shim
+        run: |
+          cmake -S . -B build/x86 -DCMAKE_SYSTEM_NAME=Windows -DCMAKE_CXX_COMPILER=i686-w64-mingw32-g++
+          cmake --build build/x86 --target farcry3_shim --parallel
+      - name: Validate architectures, exports, and runtime dependencies
+        shell: bash
+        run: |
+          file build/x86/farcry3_shim/binkw32.dll | grep -q 'PE32.*Intel 80386\|PE32.*Intel i386'
+          file build/x64/farcry4_shim/bink2w64.dll | grep -q 'PE32+.*x86-64'
+          file build/x64/farcry5_shim/bink2w64.dll | grep -q 'PE32+.*x86-64'
+          file build/x64/farcrynewdawn_shim/bink2w64.dll | grep -q 'PE32+.*x86-64'
+          test "$(objdump -p build/x86/farcry3_shim/binkw32.dll | grep -c 'Forwarder RVA')" -eq 77
+          test "$(objdump -p build/x64/farcry4_shim/bink2w64.dll | grep -c 'Forwarder RVA')" -eq 83
+          test "$(objdump -p build/x64/farcry5_shim/bink2w64.dll | grep -c 'Forwarder RVA')" -eq 72
+          test "$(objdump -p build/x64/farcrynewdawn_shim/bink2w64.dll | grep -c 'Forwarder RVA')" -eq 72
+          if objdump -p build/x86/farcry3_shim/binkw32.dll build/x64/farcry4_shim/bink2w64.dll build/x64/farcry5_shim/bink2w64.dll build/x64/farcrynewdawn_shim/bink2w64.dll | grep -Eiq 'lib(winpthread|gcc|stdc\+\+)'; then
+            echo 'A shim unexpectedly depends on a MinGW runtime DLL.' >&2
+            exit 1
+          fi
+      - name: Publish Far Cry 3 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: farcry3_shim
+          path: build/x86/farcry3_shim/binkw32.dll
+          if-no-files-found: error
+      - name: Publish Far Cry 4 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: farcry4_shim
+          path: build/x64/farcry4_shim/bink2w64.dll
+          if-no-files-found: error
+      - name: Publish Far Cry 5 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: farcry5_shim
+          path: build/x64/farcry5_shim/bink2w64.dll
+          if-no-files-found: error
+      - name: Publish Far Cry New Dawn artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: farcrynewdawn_shim
+          path: build/x64/farcrynewdawn_shim/bink2w64.dll
+          if-no-files-found: error
